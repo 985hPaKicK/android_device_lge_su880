@@ -1,0 +1,6 @@
+# LG_FW_QWERTY replace original file with this file 
+
+#key	SCANCODE	KEYCODE		FLAGS
+key		158			BACK		VIRTUAL	WAKE
+key		139			MENU		VIRTUAL	WAKE
+key		102			HOME		VIRTUAL	WAKE

@@ -1,0 +1,355 @@
+import init.bssq.usb.rc
+
+on early-init
+    mount debugfs debugfs /sys/kernel/debug
+    write /sys/class/firmware/timeout 5
+
+on init
+# setup the global environment
+    export ASEC_ADD_MOUNTPOINT /mnt/extasec
+    export LOOP_ADD_MOUNTPOINT /mnt/extobb
+
+# Directory for putting things only root should see.
+    mkdir /mnt/extsecure 0700 root root
+
+# Directory for staging bindmounts
+    mkdir /mnt/extsecure/staging 0700 root root
+
+# Directory-target for where the secure container
+# imagefile directory will be bind-mounted
+    mkdir /mnt/extsecure/extasec  0700 root root
+
+# Secure container public mount points.
+    mkdir /mnt/extasec 0700 root system
+    mount tmpfs tmpfs /mnt/extasec mode=0755,gid=1000
+
+# Filesystem image public mount points.
+    mkdir /mnt/extobb 0700 root system
+    mount tmpfs tmpfs /mnt/extobb mode=0755,gid=1000
+
+    export EXTERNAL_STORAGE /storage/sdcard0
+
+# create mountpoints for storage
+    mkdir /storage 0555 system system
+    mkdir /storage/sdcard0 0000 system system
+    mkdir /storage/sdcard1 0000 system system
+    symlink /storage/sdcard0 /sdcard
+    symlink /storage/sdcard1 /external_sd
+
+on fs
+    wait /dev/block/mmcblk0p2
+    mount ext4 /dev/block/mmcblk0p2 /system rw
+
+    wait /dev/block/mmcblk0p11
+    exec /system/bin/e2fsck -p /dev/block/mmcblk0p11
+    exec /system/bin/tune2fs -u system -g sdcard_rw -m 5 /dev/block/mmcblk0p11
+    mount ext4 /dev/block/mmcblk0p11 /data nosuid nodev errors=continue
+
+    wait /dev/block/mmcblk0p3
+    exec /system/bin/e2fsck -p /dev/block/mmcblk0p3
+    mount ext4 /dev/block/mmcblk0p3 /cache nosuid nodev
+
+    mkdir /data/ve 0770 radio radio
+    mount ext4 /dev/block/mmcblk0p12 /data/ve nosuid nodev noatime
+    chown radio radio /data/ve
+
+    mount ext4 /dev/block/mmcblk0p8 /persist wait noatime
+    mount ext3 /dev/block/mmcblk0p8 /persist wait noatime
+
+
+on boot
+    chown system system /sys/devices/platform/gps_gpio/poweron
+    chown system system /sys/devices/platform/gps_gpio/reset
+
+# GPS UART Setting
+    chown system system /dev/ttyHS3
+
+# glgps & libgps & log setting
+    mkdir /data/gps
+    chmod 770 /data/gps
+    chown system system /data/gps
+    mkdir /data/gps/log
+    chmod 770 /data/gps/log
+    chown system system /data/gps/log
+
+    mkdir /data/cache
+    chmod 770 /data/cache
+    chown system system /data/cache
+
+    chown system system /system/bin/glgps
+    chown system system /system/etc/gps_brcm_conf.xml
+    chown system system /system/etc/cert/
+    chown system system /system/etc/cert/lge.cer
+    insmod /system/lib/modules/bthid.ko
+    mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
+    mkdir /data/misc/wifi 0775 wifi system
+    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/dhcp 0770 dhcp dhcp
+    mkdir /data/nvcam 0770 system system
+
+    chown dhcp system /data/misc/dhcp
+    chmod 0775 /data/misc/wifi
+    chmod 0777 /system/etc/dhcpcd/dhcpcd-run-hooks
+
+    chown system system /persist
+    mkdir /persist/widevine 0770 drm system
+
+    mkdir /data/logger 0775 system system
+    chown system system /data/logger
+    chmod 0771 /data/logger
+
+    chmod 0660 /dev/ttyHS2
+    chown bluetooth bluetooth /dev/ttyHS2
+
+    # power up/down interface
+    chmod 0660 /sys/class/rfkill/rfkill0/state
+    chmod 0660 /sys/class/rfkill/rfkill0/type
+    chmod 0660 /sys/class/rfkill/rfkill1/state
+    chmod 0660 /sys/class/rfkill/rfkill1/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/type
+    write /sys/class/rfkill/rfkill0/state 0
+
+    chown system radio /sys/devices/platform/tegra-i2c.3/i2c-4/4-003c/max8907c-rtc/smplcount
+
+    # FactoryTest AT command
+    chmod 0660 /sys/devices/platform/bd_address/bdaddr_if
+    chown radio radio /sys/devices/platform/bd_address/bdaddr_if
+
+    # bluetooth MAC address programming
+    chown bluetooth bluetooth ro.bt.bdaddr_path
+    chown bluetooth bluetooth /system/etc/bluetooth
+
+    chmod 0664 /sys/power/suspend/mode
+    chown system audio /sys/power/suspend/mode
+    chown audio audio /dev/pts3
+
+    chmod 0660 /dev/hi702
+    chown media camera /dev/hi702
+    chown system system /sys/class/backlight/tegra-pwm-bl/brightness
+
+# Sensor
+    chown system system /sys/devices/virtual/input/input0/cal_start
+    chown system system /sys/devices/virtual/input/input0/cal_value_x
+    chown system system /sys/devices/virtual/input/input0/cal_value_y
+    chown system system /sys/devices/virtual/input/input0/cal_value_z
+    chown root input /sys/devices/virtual/input/input0/delay
+
+# Accelerometer
+    chmod 666 /sys/class/input/input2/device/rate
+    chmod 666 /sys/class/input/input2/device/autosleep
+
+# Vibrator
+	chmod 0666 /sys/devices/platform/bssq_vib_name/stay
+    chown system graphics /sys/devices/platform/bssq_vib_name/stay
+
+# Key_LED
+    chmod 0644 sys/class/leds/button-backlight/br_maintain_on
+    chown system system sys/class/leds/button-backlight/br_maintain_on
+    chmod 0644 /sys/class/leds/button-backlight/brightness
+    chown system system /sys/class/leds/button-backlight/brightness
+
+# BB remote file system
+    mkdir /data/rfs
+    mkdir /data/rfs/data
+    mkdir /data/rfs/data/modem
+    mkdir /data/rfs/data/debug
+    chown radio system /data/rfs/data
+
+# GPIO BB access for user radio
+    chown radio system /sys/class/gpio/gpio169/value
+
+# Battery
+    chmod 0664 /sys/bus/platform/drivers/bssq_battery/bssq_battery/readtempadc
+    chown system system /sys/bus/platform/drivers/bssq_battery/bssq_battery/readtempadc
+
+# Power management settings
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 216000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1200000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpufreq/interactive/go_maxspeed_load 80
+    write /sys/devices/system/cpu/cpufreq/interactive/boost_factor 2
+    write /sys/devices/system/cpu/cpufreq    chown system system /sys/devices/platform/gps_gpio/poweron
+    chown system system /sys/devices/platform/gps_gpio/reset
+
+# GPS UART Setting
+    chown system system /dev/ttyHS3
+
+# glgps & libgps & log setting
+    mkdir /data/gps
+    chmod 770 /data/gps
+    chown system system /data/gps
+    mkdir /data/gps/log
+    chmod 770 /data/gps/log
+    chown system system /data/gps/log
+
+    mkdir /data/cache
+    chmod 770 /data/cache
+    chown system system /data/cache
+
+    chown system system /system/bin/glgps
+    chown system system /system/etc/gps_brcm_conf.xml
+    chown system system /system/etc/cert/
+    chown system system /system/etc/cert/lge.cer/interactive/sustain_load 80
+    write /sys/module/cpuidle/parameters/lp2_in_idle 1
+
+# COM port settings
+    symlink /dev/ttyACM3 /dev/log_modem
+    chmod 775 /data/rfs/data/debug
+
+
+#MOBII_CHANGES_S Fixed CTS
+    chmod 0664 /sys/devices/platform/tegra-i2c.3/i2c-4/4-003c/bssq_battery/temp_control
+    chown system system /sys/devices/platform/tegra-i2c.3/i2c-4/4-003c/bssq_battery/temp_control
+    chmod 0664 /sys/devices/platform/tegra-i2c.0/i2c-0/0-0044/enable
+    chown system system /sys/devices/platform/tegra-i2c.0/i2c-0/0-0044/enable
+    chmod 0664 /sys/devices/platform/tegra-i2c.0/i2c-0/0-0044/status
+    chown system system /sys/devices/platform/tegra-i2c.0/i2c-0/0-0044/status
+    chmod 664 /sys/devices/platform/tegra-i2c.0/i2c-0/0-0020/gripsuppression
+    chmod 664 /sys/devices/platform/tegra-i2c.0/i2c-0/0-0020/fw_upgrade
+    chmod 664 /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/backlight/lcd-backlight/brightness
+    chown system system /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/backlight/lcd-backlight/brightness
+    chmod 664 /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/auto_onoff
+    chown system system /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/auto_onoff
+    chmod 664 /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/ambient_level
+    chown system system /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/ambient_level
+    chmod 664 /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/led_current
+    chown system system /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/led_current
+    chmod 664 /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/alc_option
+    chown system system /sys/devices/platform/i2c-gpio.5/i2c-5/5-0076/alc_option
+    chmod 664 /sys/devices/platform/i2c-gpio.5/i2c-5/5-001a/rgb_current
+    chown system system /sys/devices/platform/i2c-gpio.5/i2c-5/5-001a/rgb_current
+    chmod 664 /sys/devices/platform/i2c-gpio.6/i2c-6/6-0044/mode
+    chown system system /sys/devices/platform/i2c-gpio.6/i2c-6/6-0044/mode
+    chmod 664 /sys/devices/platform/sdhci-tegra.3/leds/mmc0::/brightness
+    chown system system /sys/devices/platform/sdhci-tegra.3/leds/mmc0::/brightness
+    chmod 664 /sys/devices/platform/sdhci-tegra.2/leds/mmc1::/brightness
+    chown system system /sys/devices/platform/sdhci-tegra.2/leds/mmc1::/brightness
+    chmod 664 /sys/devices/platform/sdhci-tegra.0/leds/mmc2::/brightness
+    chown system system /sys/devices/platform/sdhci-tegra.0/leds/mmc2::/brightness
+    chmod 664 /sys/devices/platform/bssq_qwerty_led/leds/keyboard-backlight/brightness
+    chown system system /sys/devices/platform/bssq_qwerty_led/leds/keyboard-backlight/brightness
+    chmod 664 /sys/devices/system/tegra2_statmon/enable
+    chmod 664 /sys/devices/system/tegra2_statmon/sample_time
+    chmod 664 /sys/devices/platform/i2c-gpio.6/i2c-6/6-0036/state
+    chown system system /sys/devices/platform/i2c-gpio.6/i2c-6/6-0036/state
+
+    chmod 664 /sys/devices/platform/aat1270/flash
+    chmod 664 /sys/devices/platform/gpio-keys/reset
+    chmod 664 /sys/devices/system/tegra_mc/enable
+    chmod 664 /sys/devices/system/tegra_mc/quantum
+
+service lgdrm /system/bin/lgdrmserver
+    class core
+    user root
+    group sdcard_rw radio
+
+service glgps /system/bin/glgps -c /system/etc/gps_brcm_conf.xml
+    class main
+    user system
+    group net_raw sdcard_rw system radio
+
+on property:dev.bootcomplete=1
+    start setcpversion
+
+service setcpversion /system/bin/lgcpversion
+    class main
+    oneshot
+
+service wpa_supplicant /system/bin/wpa_supplicant -Dwext -iwlan0 -c /data/misc/wifi/wpa_supplicant.conf
+    class main
+    user root
+    group wifi inet
+    socket wpa_wlan0 dgram 660 wifi wifi
+    disabled
+    oneshot
+
+service p2p_supplicant /system/bin/wpa_supplicant -Dwext -iwlan0 -c /data/misc/wifi/wpa_supplicant.conf
+    class main
+    user root
+    group wifi inet
+    socket wpa_wlan0 dgram 0660 wifi wifi
+    disabled
+    oneshot
+
+service dhcpcd_wlan0 /system/bin/dhcpcd -BKLG
+    class late_start
+    disabled
+    oneshot
+
+service dhcpcd_p2p /system/bin/dhcpcd -BKLG
+    class late_start
+    disabled
+    oneshot
+
+service iprenew_wlan0 /system/bin/dhcpcd -n
+    class late_start
+    disabled
+    oneshot
+
+service iprenew_p2p /system/bin/dhcpcd -n p2p
+    class late_start
+    disabled
+    oneshot
+
+service dhcpcd_bnep0 /system/bin/dhcpcd -BKLG
+    disabled
+    oneshot
+
+on property:init.svc.wpa_supplicant=stopped
+    stop dhcpcd
+
+service nvcpud /system/bin/nvcpud
+    class main
+    user root
+    group root
+
+service rawip_vsnet1 /system/bin/init.vsnet 1
+    class main
+   user root
+   group radio cache inet misc net_admin net_raw
+   disabled
+   oneshot
+
+service rawip_vsnet2 /system/bin/init.vsnet 2
+    class main
+   user root
+   group radio cache inet misc net_admin net_raw
+   disabled
+   oneshot
+
+service rawip_vsnet3 /system/bin/init.vsnet 3
+    class main
+   user root
+   group radio cache inet misc net_admin net_raw
+   disabled
+   oneshot
+
+service rawip_vsnet4 /system/bin/init.vsnet 4
+    class main
+   user root
+   group radio cache inet misc net_admin net_raw
+   disabled
+   oneshot
+
+service vsnet1_down /system/bin/init.vsnet-down 1
+   user root
+   group radio cache inet misc
+   disabled
+   oneshot
+
+service vsnet2_down /system/bin/init.vsnet-down 2
+   user root
+   group radio cache inet misc
+   disabled
+   oneshot
+
+service hciattach /system/bin/brcm_patchram_plus --enable_hci \
+           --baudrate 3000000 --patchram /system/bin/BCM43291A0_003.001.013.0111.0130.hcd /dev/ttyHS2
+           user bluetooth
+           group bluetooth net_bt_admin system
+           disabled
+           oneshot

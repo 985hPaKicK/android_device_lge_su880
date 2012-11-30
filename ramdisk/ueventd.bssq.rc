@@ -1,0 +1,69 @@
+/dev/nvos	0666	system	system
+/dev/nvrm	0666	system	system
+/dev/knvmap	0660	system	system
+/dev/nvmap	0666	system	system
+/dev/tegra_mediaserver  0660    media   system	#20110720 taew00k.kang@lge.com DTV LGE Broadcast 1Seg
+#/dev/ov5650	0660	media	camera
+/dev/ar0832	0660	media	camera  #20110525 calvin.hwang@lge.com Camsensor ks1001 merge
+/dev/hi702	0660	media	camera #20110518 jinkwan.kim@lge.com Camsensor 1st merge
+/dev/bu9889gulw 0660	media	camera  #20111119 calvin.hwang@lge.com EEPROM driver
+/dev/ad5820	0660	media	camera
+/dev/soc380	0660	media	camera
+/dev/tegra_camera	0660	media	camera
+/dev/bssq_cam_pmic	0660	media	camera   #20110525 calvin.hwang@lge.com Camsensor ks1001 merge 
+/dev/imx072	0660	media	camera	#MOBII_CHANGE dk.han : lu6500 camera
+/dev/dw9712     0660    media   camera	#MOBII CHANGE dk.ahn : lu6500 camera
+/dev/tegra_avp	0660	media	media
+/dev/tegra_rpc	0660	media	media
+/dev/tegra_sema	0660	media	system	#20110720 taew00k.kang@lge.com DTV LGE Broadcast 1Seg
+/dev/isdbt	0660	system	system
+/dev/tegra_sema	0660	media media
+/dev/tegra_mediaserver	0660	media	media
+/dev/tegra_dc*	0660	system	system
+/dev/nvhdcp0    0666    system  system
+/dev/nvhdcp1    0666    system  system
+/dev/nvhost-ctrl	0666	root	root
+/dev/nvhost-display	0666	root	root
+/dev/nvhost-dsi	0666	root	root
+/dev/nvhost-gr2d	0666	root	root
+/dev/nvhost-gr3d	0666	root	root
+/dev/nvhost-isp	0666	root	root
+/dev/nvhost-mpe	0666	root	root
+/dev/nvhost-vi	0666	root	root
+/dev/ttyACM*	0660	radio	system
+/dev/ttyACM3	0660	radio	log
+/dev/ttyspi*	0660	radio	radio
+/dev/pts*	0660	radio	radio
+/dev/tf_driver  0666    system  system
+/dev/ttyHS0	0664	radio	system
+/dev/ttyHS1	0664	root	system
+/dev/ttyHS2	0660	bluetooth	bluetooth
+/dev/ion	0666	system	system
+/dev/timerinfo	0444	system	system
+
+/dev/tspdrv	0666	root	root
+
+# LGE_BROADCAST_TDMB
+/dev/broadcast0           0660  media        media
+#MOBII_CHNANGE_S 20120213 mg.chang@mobii.co.kr : Appy Sensor Porting
+#for Sensors
+/dev/mpu                  0660   system     system
+/dev/mpuirq               0660   system     system
+/dev/accelirq             0660   system     system
+/dev/compassirq           0660   system     system
+/dev/timerirq             0660   system     system
+#MOBII_CHNANGE_E 20120213 mg.chang@mobii.co.kr : Appy Sensor Porting
+
+#20110620 bg80.song@lge.com add PC Sync, eta [S]
+/dev/ttyGS*	0660	system	system
+#20110620 bg80.song@lge.com add PC Sync, eta [E]
+
+#20110819 woo.jung@lge.com add Compass, eta [S]
+/dev/akm8975_dev    0660    compass system
+/dev/akm8975_aot    0660    compass system
+/dev/input/event*   0660    system  input
+#201100819 woo.jung@lge.com add Compass, eta [E]
+
+#MOBII_CHNANGE 20120712 mg.chang@mobii.co.kr : nv partition
+/dev/block/mmcblk0p5      0660   system     radio
+/dev/block/mmcblk0p6      0660   system     radio

@@ -1,0 +1,2 @@
+dev_mount sdcard /storage/sdcard0 13 /devices/platform/sdhci-tegra.3/mmc_host/mmc0/mmc0:0001/block/mmcblk0
+dev_mount external_sd /storage/sdcard1 auto /devices/platform/sdhci-tegra.2/mmc_host
